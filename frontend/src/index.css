@@ -1,0 +1,131 @@
+@import "tailwindcss";
+
+@theme {
+  /* ── Original light/white theme colours ── */
+  --color-primary: #06b6d4;
+  --color-primary-pressed: #0891b2;
+  --color-primary-light: rgba(6, 182, 212, 0.10);
+  --color-background-start: #e0f7fa;
+  --color-background-end: #f0fdff;
+  --color-surface: rgba(255, 255, 255, 0.80);
+  --color-text-heading: #1e293b;
+  --color-text-body: #334155;
+  --color-text-muted: #64748b;
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+  --color-danger-light: rgba(239, 68, 68, 0.10);
+  --color-glass-card: rgba(255, 255, 255, 0.60);
+  --color-glass-border: rgba(255, 255, 255, 0.50);
+
+  --font-sans: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+  --font-heading: "Outfit", sans-serif;
+
+  --radius-md: 16px;
+  --radius-lg: 24px;
+}
+
+:root {
+  font-family: var(--font-sans);
+  color: var(--color-text-body);
+  background-color: var(--color-background-end);
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #cffafe 0%, #e0f2fe 50%, #f0fdff 100%);
+  overflow: hidden;
+}
+
+#root {
+  width: 100%;
+  max-width: 440px;
+  height: 92vh;
+  min-height: 780px;
+  max-height: 900px;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(160deg, #e0f7fa 0%, #f8fafc 100%);
+  position: relative;
+  box-shadow: 0 25px 60px -12px rgba(6, 182, 212, 0.20), 0 8px 30px rgba(0,0,0,0.08);
+  overflow-x: hidden;
+  border-radius: 32px;
+  border: 1.5px solid rgba(6, 182, 212, 0.15);
+}
+
+/* Custom 3D & Premium Styles */
+.perspective-container {
+  perspective: 1000px;
+}
+
+.preserve-3d {
+  transform-style: preserve-3d;
+}
+
+.glass-panel {
+  background: var(--color-glass-card);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--color-glass-border);
+  box-shadow: 0 4px 24px 0 rgba(6, 182, 212, 0.08), 0 1.5px 6px rgba(0,0,0,0.06);
+}
+
+.neon-glow {
+  box-shadow: 0 0 15px rgba(6, 182, 212, 0.25);
+}
+
+.neon-glow-success {
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.20);
+}
+
+.neon-glow-danger {
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.20);
+}
+
+.glow-bg-radial {
+  background: radial-gradient(circle at center, rgba(6, 182, 212, 0.12) 0%, transparent 65%);
+  filter: blur(40px);
+  pointer-events: none;
+}
+
+.font-heading-style {
+  font-family: var(--font-heading);
+}
+
+/* Page transit cover */
+.page-transit-wrapper {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Hide scrollbar utility */
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* High-fps smooth scrolling utilities */
+html, body, #root, .smooth-scroll {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  will-change: scroll-position;
+}
+
+.scroll-snap-container {
+  scroll-snap-type: y mandatory;
+  scroll-behavior: smooth;
+}
+
+.scroll-snap-child {
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}

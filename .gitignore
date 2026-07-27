@@ -1,0 +1,13 @@
+# gitignore
+.env
+.env.example
+node_modules/
+dist/
+build/
+*.log
+.DS_Store
+patients/
+.system_generated/
+/frontend/android/app/build/
+/frontend/android/.gradle/
+/frontend/android/local.properties

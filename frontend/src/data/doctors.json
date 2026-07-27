@@ -1,0 +1,12 @@
+[
+  { "id": "doc-1", "name": "Dr. Ananya Rao", "department": "general-medicine", "qualification": "MBBS, MD (General Medicine)", "experienceYears": 9, "rating": 4.7, "available": true, "currentQueueCount": 3 },
+  { "id": "doc-2", "name": "Dr. Srinivas Murthy", "department": "cardiology", "qualification": "MBBS, DM (Cardiology)", "experienceYears": 14, "rating": 4.8, "available": true, "currentQueueCount": 5 },
+  { "id": "doc-3", "name": "Dr. Lakshmi Hegde", "department": "dermatology", "qualification": "MBBS, MD (Dermatology)", "experienceYears": 7, "rating": 4.6, "available": true, "currentQueueCount": 2 },
+  { "id": "doc-4", "name": "Dr. Manjunath Gowda", "department": "orthopedics", "qualification": "MBBS, MS (Orthopedics)", "experienceYears": 11, "rating": 4.5, "available": false, "currentQueueCount": 0 },
+  { "id": "doc-5", "name": "Dr. Kavya Shastri", "department": "pediatrics", "qualification": "MBBS, MD (Pediatrics)", "experienceYears": 6, "rating": 4.9, "available": true, "currentQueueCount": 4 },
+  { "id": "doc-6", "name": "Dr. Nagaraj Bhat", "department": "orthopedics", "qualification": "MBBS, MS (Orthopedics)", "experienceYears": 16, "rating": 4.7, "available": true, "currentQueueCount": 6 },
+  { "id": "doc-7", "name": "Dr. Sowmya Iyengar", "department": "gynecology", "qualification": "MBBS, MD (Obstetrics & Gynecology)", "experienceYears": 10, "rating": 4.8, "available": true, "currentQueueCount": 3 },
+  { "id": "doc-8", "name": "Dr. Ramesh Kulkarni", "department": "dentistry", "qualification": "BDS, MDS (Oral & Maxillofacial)", "experienceYears": 8, "rating": 4.6, "available": true, "currentQueueCount": 1 },
+  { "id": "doc-9", "name": "Dr. Vidya Prabhu", "department": "ophthalmology", "qualification": "MBBS, MS (Ophthalmology)", "experienceYears": 12, "rating": 4.7, "available": true, "currentQueueCount": 2 },
+  { "id": "doc-10", "name": "Dr. Suresh Naik", "department": "general-medicine", "qualification": "MBBS, MD (General Medicine)", "experienceYears": 5, "rating": 4.4, "available": true, "currentQueueCount": 7 }
+]
