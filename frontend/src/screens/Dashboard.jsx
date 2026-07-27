@@ -1,4 +1,5 @@
 import React, { useContext, useState, useEffect, useRef, useCallback } from 'react';
+import { API_BASE_URL } from '../config';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AppContext } from '../context/AppContext';
@@ -500,7 +501,7 @@ export default function Dashboard() {
 
     // 2. Concurrently fetch dynamic feedback/logs from backend in the background
     try {
-      fetch('http://localhost:5000/api/healthcare/next-question', {
+      fetch(`${API_BASE_URL}/api/healthcare/next-question`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -639,7 +640,7 @@ export default function Dashboard() {
         setAgentLogs([{ timestamp: new Date().toISOString(), agent: 'Orchestrator Agent', status: 'CONNECTING', message: 'Contacting clinical backend…' }]);
         const ctrl = new AbortController();
         const fetchTimer = setTimeout(() => ctrl.abort(), 15000); // 15s timeout
-        const resp = await fetch('http://localhost:5000/api/healthcare/chat', {
+        const resp = await fetch(`${API_BASE_URL}/api/healthcare/chat`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ symptoms: parts, language, profile: simProfile }),
           signal: ctrl.signal
