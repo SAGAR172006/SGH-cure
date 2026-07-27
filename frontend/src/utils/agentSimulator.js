@@ -1,4 +1,5 @@
 // agentSimulator.js — SGH Clinical Multi-Agent Engine v2.0
+import { API_BASE_URL, safeFetch } from '../config';
 // Fixes: expanded department DB, gastro, ENT, neuro, pulmo, correct triage keywords,
 //        full prescription + home remedies, bypass fallback improved.
 
@@ -384,7 +385,7 @@ export async function simulateWorkflow(inputText, selectedLanguage, activeProfil
     try {
       const ctrl = new AbortController();
       const fetchTimer = setTimeout(() => ctrl.abort(), 15000);
-      const resp = await fetch('http://localhost:5000/api/healthcare/chat', {
+      const resp = await safeFetch(`${API_BASE_URL}/api/healthcare/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ symptoms: inputText, language: selectedLanguage, profile: activeProfile }),

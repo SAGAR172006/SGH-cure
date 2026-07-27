@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { API_BASE_URL } from '../config';
+import { API_BASE_URL, safeFetch } from '../config';
 import { useNavigate, useSearchParams, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { AppContext } from '../context/AppContext';
@@ -112,14 +112,14 @@ export default function PatientCardView() {
     // 2. Fetch from backend API if not in local context
     const fetchPatient = async () => {
       try {
-        const res = await fetch(`${API_BASE_URL}/api/patients`);
+        const res = await safeFetch(`${API_BASE_URL}/api/patients`);
         if (res.ok) {
           const patients = await res.json();
           const match = patients.find(p => p.id === targetId);
           if (match) {
             let diagData = null;
             try {
-              const dRes = await fetch(`${API_BASE_URL}/api/diagnostics/${targetId}`);
+              const dRes = await safeFetch(`${API_BASE_URL}/api/diagnostics/${targetId}`);
               if (dRes.ok) {
                 const d = await dRes.json();
                 if (d) {

@@ -1,5 +1,5 @@
 import React, { createContext, useState, useEffect, useCallback } from 'react';
-import { API_BASE_URL } from '../config';
+import { API_BASE_URL, safeFetch } from '../config';
 
 export const AppContext = createContext();
 
@@ -185,7 +185,7 @@ export const AppContextProvider = ({ children }) => {
 
     // Sync self-profile to Supabase (using unique ID so users don't overwrite each other)
     try {
-      await fetch(`${API_BASE_URL}/api/patients`, {
+      await safeFetch(`${API_BASE_URL}/api/patients`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -236,7 +236,7 @@ export const AppContextProvider = ({ children }) => {
     setProfiles(prev => [...prev, fullProfile]);
 
     try {
-      await fetch(`${API_BASE_URL}/api/patients`, {
+      await safeFetch(`${API_BASE_URL}/api/patients`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -324,7 +324,7 @@ export const AppContextProvider = ({ children }) => {
     );
 
     try {
-      await fetch(`${API_BASE_URL}/api/bookings`, {
+      await safeFetch(`${API_BASE_URL}/api/bookings`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -360,7 +360,7 @@ export const AppContextProvider = ({ children }) => {
             let diagnosticData = localProfile.diagnosticData || null;
 
             try {
-              const bRes = await fetch(`${API_BASE_URL}/api/bookings/${localProfile.id}`);
+              const bRes = await safeFetch(`${API_BASE_URL}/api/bookings/${localProfile.id}`);
               if (bRes.ok) {
                 const bData = await bRes.json();
                 if (bData && bData.length > 0) {
@@ -379,7 +379,7 @@ export const AppContextProvider = ({ children }) => {
             }
 
             try {
-              const dRes = await fetch(`${API_BASE_URL}/api/diagnostics/${localProfile.id}`);
+              const dRes = await safeFetch(`${API_BASE_URL}/api/diagnostics/${localProfile.id}`);
               if (dRes.ok) {
                 const dData = await dRes.json();
                 if (dData) {

@@ -1,5 +1,5 @@
 import React, { useContext, useState, useEffect, useRef, useCallback } from 'react';
-import { API_BASE_URL } from '../config';
+import { API_BASE_URL, safeFetch } from '../config';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AppContext } from '../context/AppContext';
@@ -445,27 +445,34 @@ export default function Dashboard() {
   const startMic = useCallback(() => {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SR) {
-      // Graceful fallback for Firefox / unsupported browsers
       setCurrentTranscript('⚠️ Voice input is not supported in this browser. Please type your answer or use Chrome/Safari.');
       setIsListening(false);
       return;
     }
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.onend = null;
+        recognitionRef.current.onerror = null;
+        recognitionRef.current.onresult = null;
+        recognitionRef.current.abort();
+      } catch (err) {}
+      recognitionRef.current = null;
+    }
     const r = new SR();
     r.lang = { en: 'en-IN', hi: 'hi-IN', kn: 'kn-IN' }[language] || 'en-IN';
-    r.continuous = true; r.interimResults = true;
+    r.continuous = false;
+    r.interimResults = true;
     r.onresult = e => {
-      let final = '';
-      let interim = '';
+      let text = '';
       for (let i = 0; i < e.results.length; i++) {
-        const tr = e.results[i][0].transcript;
-        if (e.results[i].isFinal) final += tr + ' ';
-        else interim = tr;
+        text = e.results[i][0].transcript;
       }
-      setCurrentTranscript(final + interim);
+      setCurrentTranscript(text);
     };
     r.onerror = () => setIsListening(false);
     r.onend = () => setIsListening(false);
-    recognitionRef.current = r; r.start(); setIsListening(true);
+    recognitionRef.current = r;
+    try { r.start(); setIsListening(true); } catch (e) { setIsListening(false); }
   }, [language]);
 
   const abortMic = useCallback(() => {
@@ -542,7 +549,7 @@ export default function Dashboard() {
 
     // 2. Concurrently fetch dynamic feedback/logs from backend in the background
     try {
-      fetch(`${API_BASE_URL}/api/healthcare/next-question`, {
+      safeFetch(`${API_BASE_URL}/api/healthcare/next-question`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -681,7 +688,7 @@ export default function Dashboard() {
         setAgentLogs([{ timestamp: new Date().toISOString(), agent: 'Orchestrator Agent', status: 'CONNECTING', message: 'Contacting clinical backend…' }]);
         const ctrl = new AbortController();
         const fetchTimer = setTimeout(() => ctrl.abort(), 15000); // 15s timeout
-        const resp = await fetch(`${API_BASE_URL}/api/healthcare/chat`, {
+        const resp = await safeFetch(`${API_BASE_URL}/api/healthcare/chat`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ symptoms: parts, language, profile: simProfile }),
           signal: ctrl.signal
