@@ -301,7 +301,9 @@ export default function Dashboard() {
   } = useContext(AppContext);
 
   const navigate = useNavigate();
-  const activeProfile = profiles.find(p => p.id === activeProfileId) || profiles[0];
+  const activeProfile = (profiles && profiles.length > 0)
+    ? (profiles.find(p => p.id === activeProfileId) || profiles[0])
+    : { id: 'self', name: user?.name || 'Patient', age: 30, sex: 'Male' };
 
 
   // UI state
@@ -502,7 +504,7 @@ export default function Dashboard() {
     setIsListening(false);
   }, []);
 
-  // Advance with context-aware next question — Gemini dynamic AI reasoning
+  // Advance with context-aware next question — Instant UI transition + Async Gemini AI Reasoning
   const advanceWorkflow = useCallback(async (newAnswers) => {
     stopMic();
     setCurrentTranscript('');
@@ -511,7 +513,7 @@ export default function Dashboard() {
     const nextStep = qIndex + 1;
     const pool = QUESTION_POOL[language] || QUESTION_POOL.en;
     const nextKey = QUESTION_ORDER[nextStep] || `q${nextStep}`;
-    const fallbackText = pool[nextKey] ? pool[nextKey](activeProfile, newAnswers) : '';
+    let initialText = pool[nextKey] ? pool[nextKey](activeProfile, newAnswers) : '';
 
     if (nextStep >= 10) {
       setPhase('analyzing');
@@ -519,10 +521,20 @@ export default function Dashboard() {
       return;
     }
 
-    let chosenQuestion = fallbackText;
-    
+    // 1. Immediately advance step and queue for zero UI latency (< 50ms)
+    const initialQueue = [...queue];
+    initialQueue[nextStep] = { key: nextKey, text: initialText || 'Processing clinical input…' };
+    setQueue(initialQueue);
+    setQIndex(nextStep);
+
+    // Speak initial fallback or start TTS
+    if (initialText) {
+      agentSpeak(initialText, () => startMic());
+    }
+
+    // 2. Concurrently fetch Gemini AI reasoning in background to upgrade question text
     try {
-      const resp = await safeFetch(`${API_BASE_URL}/api/healthcare/next-question`, {
+      safeFetch(`${API_BASE_URL}/api/healthcare/next-question`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -531,10 +543,10 @@ export default function Dashboard() {
           language,
           profile: activeProfile
         })
-      });
-
-      if (resp.ok) {
-        const data = await resp.json();
+      })
+      .then(resp => resp.ok ? resp.json() : null)
+      .then(data => {
+        if (!data) return;
         if (data.updatedAnswers) {
           setAnswers(prev => ({ ...prev, ...data.updatedAnswers }));
         }
@@ -556,25 +568,22 @@ export default function Dashboard() {
           return;
         }
 
-        if (data.nextQuestion) {
-          chosenQuestion = data.nextQuestion;
+        // If Gemini returned a dynamic AI question, upgrade current question text & speak it!
+        if (data.nextQuestion && data.nextQuestion !== initialText) {
+          setQueue(prev => {
+            const updated = [...prev];
+            updated[nextStep] = { key: nextKey, text: data.nextQuestion };
+            return updated;
+          });
+          // Speak Gemini's dynamic AI question aloud
+          stopSpeaking();
+          agentSpeak(data.nextQuestion, () => startMic());
         }
-      }
+      })
+      .catch(err => console.warn("Gemini dynamic question background update skipped:", err));
     } catch (e) {
-      console.warn("Backend dynamic question fetch failed, using fallback:", e);
+      console.warn("safeFetch error:", e);
     }
-
-    if (!chosenQuestion) {
-      setPhase('analyzing');
-      runPipeline(newAnswers);
-      return;
-    }
-
-    const newQueue = [...queue];
-    newQueue[nextStep] = { key: nextKey, text: chosenQuestion };
-    setQueue(newQueue);
-    setQIndex(nextStep);
-    setTimeout(() => agentSpeak(chosenQuestion, () => startMic()), 300);
   }, [qIndex, language, activeProfile, queue, agentSpeak, startMic, stopMic, runPipeline]);
 
   const handleDone = useCallback(() => {
