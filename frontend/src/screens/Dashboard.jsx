@@ -302,7 +302,7 @@ export default function Dashboard() {
 
   const navigate = useNavigate();
   const activeProfile = (profiles && profiles.length > 0)
-    ? (profiles.find(p => p.id === activeProfileId) || profiles[0])
+    ? (profiles.find(p => p && p.id === activeProfileId) || profiles[0] || { id: 'self', name: user?.name || 'Patient', age: 30, sex: 'Male' })
     : { id: 'self', name: user?.name || 'Patient', age: 30, sex: 'Male' };
 
 
@@ -801,15 +801,17 @@ export default function Dashboard() {
         <div className="space-y-2 flex-shrink-0">
           <h3 className="text-[10px] font-bold tracking-widest text-primary uppercase font-heading-style">{s.familyTitle}</h3>
           <div className="flex items-center gap-3 overflow-x-auto py-2 px-1 scrollbar-none">
-            {profiles.map(p => (
-              <motion.div key={p.id} whileHover={{ scale: 1.05, y: -3 }} className="flex flex-col items-center shrink-0 relative">
-                <button onClick={() => setActiveProfileId(p.id)}
-                  className={`w-3 h-3 rounded-full border border-slate-300 absolute -top-0.5 -right-0.5 z-10 cursor-pointer ${activeProfileId === p.id ? 'bg-success' : 'bg-slate-300'}`} />
+            {(profiles || []).map(p => (
+              <motion.div key={p?.id || Math.random()} whileHover={{ scale: 1.05, y: -3 }} className="flex flex-col items-center shrink-0 relative">
+                <button onClick={() => p?.id && setActiveProfileId(p.id)}
+                  className={`w-3 h-3 rounded-full border border-slate-300 absolute -top-0.5 -right-0.5 z-10 cursor-pointer ${activeProfileId === p?.id ? 'bg-success' : 'bg-slate-300'}`} />
                 <button onClick={() => setSelectedDetailProfile(p)}
-                  className={`w-14 h-14 rounded-2xl flex items-center justify-center font-bold text-lg text-white border transition-all shadow-lg cursor-pointer ${getAvatarBg(p.id)} ${activeProfileId === p.id ? 'border-primary ring-2 ring-primary/20' : 'border-white/20'}`}>
-                  {p.name[0]}
+                  className={`w-14 h-14 rounded-2xl flex items-center justify-center font-bold text-lg text-white border transition-all shadow-lg cursor-pointer ${getAvatarBg(p?.id)} ${activeProfileId === p?.id ? 'border-primary ring-2 ring-primary/20' : 'border-white/20'}`}>
+                  {p?.name ? p.name[0]?.toUpperCase() : 'S'}
                 </button>
-                <span className="text-[10px] font-bold text-text-heading mt-1">{p.id.startsWith('self_') ? s.self : p.name.split(' ')[0]}</span>
+                <span className="text-[10px] font-bold text-text-heading mt-1">
+                  {p?.id?.startsWith('self_') ? s.self : (p?.name ? p.name.split(' ')[0] : 'Member')}
+                </span>
               </motion.div>
             ))}
             <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
