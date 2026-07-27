@@ -1014,7 +1014,7 @@ export default function Dashboard() {
       {/* ══ HEALTH CARD QR POP-UP MODAL ══ */}
       <AnimatePresence>
         {isHealthCardModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 z-50 flex items-center justify-center p-4">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -1222,7 +1222,7 @@ export default function Dashboard() {
       {/* ══ AI DOCTOR MODAL — floats above bottom nav ══ */}
       <AnimatePresence>
         {isVoiceActive && (
-          <div className="fixed inset-0 z-50 flex items-end justify-center pointer-events-none">
+          <div className="absolute inset-0 z-50 flex items-end justify-center pointer-events-none">
             <div className="absolute inset-0 bg-black/40 backdrop-blur-sm pointer-events-auto" onClick={closeConsultation} />
 
             <motion.div

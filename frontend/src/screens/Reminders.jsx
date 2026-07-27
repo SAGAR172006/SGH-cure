@@ -148,7 +148,7 @@ export default function Reminders() {
             initial={{ opacity: 0, y: -20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -20, scale: 0.95 }}
-            className="fixed top-5 left-1/2 -translate-x-1/2 z-50 max-w-xs w-[90%] bg-slate-900/95 text-white backdrop-blur-md px-4 py-3 rounded-2xl shadow-2xl border border-white/20 flex items-center gap-3 text-xs font-semibold"
+            className="absolute top-5 left-1/2 -translate-x-1/2 z-50 max-w-xs w-[90%] bg-slate-900/95 text-white backdrop-blur-md px-4 py-3 rounded-2xl shadow-2xl border border-white/20 flex items-center gap-3 text-xs font-semibold"
           >
             <span className="text-base">🔔</span>
             <span className="flex-1 capitalize">{toastMsg}</span>
@@ -264,7 +264,7 @@ export default function Reminders() {
       {/* Create / Edit Modal */}
       <AnimatePresence>
         {isModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 z-50 flex items-center justify-center p-4">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}

@@ -61,7 +61,7 @@ export default function BottomNav() {
   if (hiddenPaths.includes(location.pathname)) return null;
 
   return (
-    <div className="fixed bottom-4 left-0 right-0 z-50 flex justify-center px-4 pointer-events-none">
+    <div className="absolute bottom-6 left-0 right-0 z-50 flex justify-center px-4 pointer-events-none">
       <div
         className="pointer-events-auto flex items-center gap-1 px-2 py-2 rounded-[32px]"
         style={{

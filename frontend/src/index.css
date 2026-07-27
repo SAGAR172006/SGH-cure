@@ -129,3 +129,18 @@ html, body, #root, .smooth-scroll {
   scroll-snap-align: start;
   scroll-snap-stop: always;
 }
+
+@media (max-width: 640px) {
+  #root {
+    max-width: 100% !important;
+    height: 100vh !important;
+    min-height: 100vh !important;
+    max-height: 100vh !important;
+    border-radius: 0px !important;
+    border: none !important;
+  }
+  body {
+    padding: 0 !important;
+    background: var(--color-background-end) !important;
+  }
+}
