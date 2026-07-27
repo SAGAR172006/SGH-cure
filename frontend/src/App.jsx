@@ -21,26 +21,38 @@ import './App.css';
 function App() {
   useEffect(() => {
     // 1. Request microphone permission
-    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-      navigator.mediaDevices.getUserMedia({ audio: true })
-        .then(stream => {
-          stream.getTracks().forEach(track => track.stop());
-        })
-        .catch(err => console.warn("Microphone permission denied:", err));
+    try {
+      if (navigator.mediaDevices && typeof navigator.mediaDevices.getUserMedia === 'function') {
+        navigator.mediaDevices.getUserMedia({ audio: true })
+          .then(stream => {
+            stream.getTracks().forEach(track => track.stop());
+          })
+          .catch(err => console.warn("Microphone permission denied:", err));
+      }
+    } catch (e) {
+      console.warn("Microphone permission request failed:", e);
     }
 
     // 2. Request Location permission
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        () => {},
-        (err) => console.warn("Location permission denied:", err),
-        { enableHighAccuracy: false, timeout: 5000 }
-      );
+    try {
+      if (navigator.geolocation && typeof navigator.geolocation.getCurrentPosition === 'function') {
+        navigator.geolocation.getCurrentPosition(
+          () => {},
+          (err) => console.warn("Location permission denied:", err),
+          { enableHighAccuracy: false, timeout: 5000 }
+        );
+      }
+    } catch (e) {
+      console.warn("Location permission request failed:", e);
     }
 
     // 3. Request Notification permission
-    if (window.Notification && Notification.permission !== 'granted') {
-      Notification.requestPermission().catch(err => console.warn("Notification permission blocked:", err));
+    try {
+      if (window.Notification && typeof Notification.requestPermission === 'function' && Notification.permission !== 'granted') {
+        Notification.requestPermission().catch(err => console.warn("Notification permission blocked:", err));
+      }
+    } catch (e) {
+      console.warn("Notification permission request failed:", e);
     }
   }, []);
 

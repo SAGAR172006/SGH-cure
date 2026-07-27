@@ -27,41 +27,73 @@ export async function callGemini(prompt, systemInstruction = "") {
     throw new Error("Gemini API call bypassed by configuration");
   }
 
-  const { key: geminiKey, slot: keySlotNum } = getActiveGeminiKey();
-  if (!geminiKey) {
-    throw new Error("No Gemini API key available in slot configuration");
+  const keys = [
+    process.env.VITE_GEMINI_KEY_1,
+    process.env.VITE_GEMINI_KEY_2,
+    process.env.VITE_GEMINI_KEY_3,
+    process.env.VITE_GEMINI_KEY_4,
+    process.env.VITE_GEMINI_KEY_5
+  ].map(k => k ? k.trim() : '').filter(k => k !== '');
+
+  if (keys.length === 0) {
+    throw new Error("No Gemini API keys configured");
   }
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`;
-  const requestBody = {
-    contents: [{ parts: [{ text: prompt }] }],
-    generationConfig: {
-      responseMimeType: "application/json"
-    }
-  };
-
-  if (systemInstruction) {
-    requestBody.systemInstruction = {
-      parts: [{ text: systemInstruction }]
+  let lastError = null;
+  for (let attempt = 0; attempt < keys.length; attempt++) {
+    const slotIndex = (currentKeySlot + attempt) % keys.length;
+    const activeKey = keys[slotIndex];
+    
+    console.log(`[Gemini Client] Attempting API call using Key Slot ${slotIndex + 1}...`);
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${activeKey}`;
+    const requestBody = {
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: {
+        responseMimeType: "application/json"
+      }
     };
+
+    if (systemInstruction) {
+      requestBody.systemInstruction = {
+        parts: [{ text: systemInstruction }]
+      };
+    }
+
+    try {
+      // Set a fetch timeout to prevent hanging forever
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 12000); // 12s timeout per key
+      
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestBody),
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const errorBody = await response.text();
+        throw new Error(`HTTP ${response.status}: ${errorBody}`);
+      }
+
+      const resData = await response.json();
+      const rawText = resData.candidates[0].content.parts[0].text;
+      
+      // Successfully called and parsed
+      const parsed = JSON.parse(rawText);
+      
+      // Update global rotation pointer to next slot for future calls
+      currentKeySlot = (slotIndex + 1) % keys.length;
+      return parsed;
+
+    } catch (err) {
+      console.warn(`[Gemini Client] Key Slot ${slotIndex + 1} failed: ${err.message}`);
+      lastError = err;
+      // Continue to next key slot in loop
+    }
   }
 
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(requestBody)
-  });
-
-  if (!response.ok) {
-    const errorBody = await response.text();
-    throw new Error(`Gemini HTTP Error ${response.status}: ${errorBody}`);
-  }
-
-  const resData = await response.json();
-  try {
-    const rawText = resData.candidates[0].content.parts[0].text;
-    return JSON.parse(rawText);
-  } catch (parseError) {
-    throw new Error(`Failed to parse Gemini JSON output: ${parseError.message}`);
-  }
+  throw new Error(`All ${keys.length} Gemini API Key Slots failed. Last error: ${lastError?.message}`);
 }
