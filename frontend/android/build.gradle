@@ -18,6 +18,9 @@ buildscript {
 apply from: "variables.gradle"
 
 allprojects {
+    // Override buildDir to a short path to prevent Windows 260-character path limit errors in AAPT2 resource merging
+    buildDir = "C:/sgh-build/${project.name}"
+    
     repositories {
         google()
         mavenCentral()

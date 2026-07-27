@@ -12,6 +12,7 @@ const translations = {
     time: "Time",
     dept: "Department",
     btnBack: "← Dashboard",
+    btnCancel: "Cancel Slot",
   },
   hi: {
     title: "अपॉइंटमेंट इतिहास",
@@ -22,6 +23,7 @@ const translations = {
     time: "समय",
     dept: "विभाग",
     btnBack: "← डैशबोर्ड",
+    btnCancel: "रद्द करें",
   },
   kn: {
     title: "ಬುಕಿಂಗ್ ಇತಿಹಾಸ",
@@ -32,11 +34,12 @@ const translations = {
     time: "ಸಮಯ",
     dept: "ಇಲಾಖೆ",
     btnBack: "← ಡ್ಯಾಶ್‌ಬೋರ್ಡ್",
+    btnCancel: "ರದ್ದುಮಾಡಿ",
   }
 };
 
 export default function History() {
-  const { language, profiles } = useContext(AppContext);
+  const { language, profiles, deleteProfileBooking } = useContext(AppContext);
   const navigate = useNavigate();
   const t = translations[language] || translations.en;
 
@@ -44,9 +47,11 @@ export default function History() {
   const allBookings = [];
   profiles.forEach(p => {
     if (p.bookings && p.bookings.length > 0) {
-      p.bookings.forEach(b => {
+      p.bookings.forEach((b, index) => {
         allBookings.push({
           ...b,
+          patientId: p.id,
+          bookingIndex: index,
           patientName: p.name,
           relation: p.id === 'self' ? 'Self' : p.relation || 'Family'
         });
@@ -112,7 +117,15 @@ export default function History() {
 
                     <div className="col-span-2 border-t border-black/5 pt-1.5 mt-0.5 flex justify-between items-center">
                       <span className="text-[9px] text-text-muted uppercase">{t.time}</span>
-                      <span className="font-bold text-primary">{b.timeSlot}</span>
+                      <div className="flex items-center space-x-3">
+                        <span className="font-bold text-primary mr-2">{b.timeSlot}</span>
+                        <button
+                          onClick={() => deleteProfileBooking(b.patientId, b.bookingIndex)}
+                          className="text-[9px] font-bold text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 px-2 py-0.5 rounded transition-colors cursor-pointer border border-red-200"
+                        >
+                          {t.btnCancel}
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
