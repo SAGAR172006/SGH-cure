@@ -502,54 +502,27 @@ export default function Dashboard() {
     setIsListening(false);
   }, []);
 
-  // Advance with context-aware next question — instant progression with background sync
+  // Advance with context-aware next question — Gemini dynamic AI reasoning
   const advanceWorkflow = useCallback(async (newAnswers) => {
     stopMic();
     setCurrentTranscript('');
     setAnswers(newAnswers);
     
     const nextStep = qIndex + 1;
-    
-    // 1. Immediately progress local pool question for zero user latency
-    let nextLocalQuestionText = '';
     const pool = QUESTION_POOL[language] || QUESTION_POOL.en;
     const nextKey = QUESTION_ORDER[nextStep] || `q${nextStep}`;
-    
-    const fn = pool[nextKey];
-    if (fn) {
-      nextLocalQuestionText = fn(activeProfile, newAnswers);
-    }
-    
-    if (!nextLocalQuestionText) {
-      for (let i = nextStep; i < QUESTION_ORDER.length; i++) {
-        const k = QUESTION_ORDER[i];
-        const f = pool[k];
-        const text = f ? f(activeProfile, newAnswers) : null;
-        if (text) {
-          nextLocalQuestionText = text;
-          break;
-        }
-      }
-    }
-    
-    const shouldEndLocal = nextStep >= 10 || !nextLocalQuestionText;
-    
-    if (shouldEndLocal) {
+    const fallbackText = pool[nextKey] ? pool[nextKey](activeProfile, newAnswers) : '';
+
+    if (nextStep >= 10) {
       setPhase('analyzing');
       runPipeline(newAnswers);
       return;
     }
-    
-    // Update queue state and speak instantly
-    const newQueue = [...queue];
-    newQueue[nextStep] = { key: nextKey, text: nextLocalQuestionText };
-    setQueue(newQueue);
-    setQIndex(nextStep);
-    setTimeout(() => agentSpeak(nextLocalQuestionText, () => startMic()), 350);
 
-    // 2. Concurrently fetch dynamic feedback/logs from backend in the background
+    let chosenQuestion = fallbackText;
+    
     try {
-      safeFetch(`${API_BASE_URL}/api/healthcare/next-question`, {
+      const resp = await safeFetch(`${API_BASE_URL}/api/healthcare/next-question`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -558,13 +531,13 @@ export default function Dashboard() {
           language,
           profile: activeProfile
         })
-      })
-      .then(resp => {
-        if (resp.ok) return resp.json();
-        throw new Error('API error');
-      })
-      .then(data => {
-        setAnswers(prev => ({ ...prev, ...data.updatedAnswers }));
+      });
+
+      if (resp.ok) {
+        const data = await resp.json();
+        if (data.updatedAnswers) {
+          setAnswers(prev => ({ ...prev, ...data.updatedAnswers }));
+        }
         if (data.logs) {
           setAgentLogs(prev => {
             const uniqueLogs = [...prev];
@@ -576,23 +549,33 @@ export default function Dashboard() {
             return uniqueLogs;
           });
         }
-        
-        // Pre-fill the next step's question text in the queue dynamically
-        if (data.nextQuestion && !data.shouldEnd) {
-          const nextNextStep = nextStep + 1;
-          const nextNextKey = `q${nextNextStep}`;
-          setQueue(prev => {
-            const updated = [...prev];
-            updated[nextNextStep] = { key: nextNextKey, text: data.nextQuestion };
-            return updated;
-          });
+
+        if (data.shouldEnd && nextStep >= 6) {
+          setPhase('analyzing');
+          runPipeline(newAnswers);
+          return;
         }
-      })
-      .catch(err => console.warn("Background next-question update skipped:", err));
+
+        if (data.nextQuestion) {
+          chosenQuestion = data.nextQuestion;
+        }
+      }
     } catch (e) {
-      // Intentionally ignore sync fetch errors
+      console.warn("Backend dynamic question fetch failed, using fallback:", e);
     }
-  }, [qIndex, queue, language, activeProfile, stopMic, startMic, agentSpeak]);
+
+    if (!chosenQuestion) {
+      setPhase('analyzing');
+      runPipeline(newAnswers);
+      return;
+    }
+
+    const newQueue = [...queue];
+    newQueue[nextStep] = { key: nextKey, text: chosenQuestion };
+    setQueue(newQueue);
+    setQIndex(nextStep);
+    setTimeout(() => agentSpeak(chosenQuestion, () => startMic()), 300);
+  }, [qIndex, language, activeProfile, queue, agentSpeak, startMic, stopMic, runPipeline]);
 
   const handleDone = useCallback(() => {
     const answer = currentTranscript.trim();
