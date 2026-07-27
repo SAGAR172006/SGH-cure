@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import { AppContextProvider } from './context/AppContext';
 import BottomNav from './components/BottomNav';
@@ -19,6 +19,31 @@ import PatientCardView from './screens/PatientCardView';
 import './App.css';
 
 function App() {
+  useEffect(() => {
+    // 1. Request microphone permission
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(stream => {
+          stream.getTracks().forEach(track => track.stop());
+        })
+        .catch(err => console.warn("Microphone permission denied:", err));
+    }
+
+    // 2. Request Location permission
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        () => {},
+        (err) => console.warn("Location permission denied:", err),
+        { enableHighAccuracy: false, timeout: 5000 }
+      );
+    }
+
+    // 3. Request Notification permission
+    if (window.Notification && Notification.permission !== 'granted') {
+      Notification.requestPermission().catch(err => console.warn("Notification permission blocked:", err));
+    }
+  }, []);
+
   return (
     <AppContextProvider>
       <Router>

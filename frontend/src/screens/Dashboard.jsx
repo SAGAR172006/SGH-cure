@@ -390,14 +390,55 @@ export default function Dashboard() {
     if (!window.speechSynthesis) { onDone?.(); return; }
     window.speechSynthesis.cancel();
     setAgentSpeaking(true);
+    
+    let active = true;
+    const fallbackTimeout = setTimeout(() => {
+      if (active) {
+        active = false;
+        console.warn("SpeechSynthesis onend fallback timeout triggered");
+        setAgentSpeaking(false);
+        onDone?.();
+      }
+    }, Math.max(3000, text.length * 80));
+
     const u = new SpeechSynthesisUtterance(text);
     const voice = getBestVoice(language);
     if (voice) u.voice = voice;
     u.lang = { en: 'en-IN', hi: 'hi-IN', kn: 'kn-IN' }[language] || 'en-IN';
     u.rate = 0.88; u.pitch = 1.08; u.volume = 1;
-    u.onend = () => { setAgentSpeaking(false); onDone?.(); };
-    u.onerror = () => { setAgentSpeaking(false); onDone?.(); };
-    window.speechSynthesis.speak(u);
+    
+    u.onend = () => {
+      if (active) {
+        active = false;
+        clearTimeout(fallbackTimeout);
+        setAgentSpeaking(false);
+        onDone?.();
+      }
+    };
+    
+    u.onerror = (err) => {
+      console.warn("SpeechSynthesis error details:", err);
+      if (active) {
+        active = false;
+        clearTimeout(fallbackTimeout);
+        setAgentSpeaking(false);
+        onDone?.();
+      }
+    };
+
+    setTimeout(() => {
+      try {
+        window.speechSynthesis.speak(u);
+      } catch (err) {
+        console.warn("Failsafe speak call:", err);
+        if (active) {
+          active = false;
+          clearTimeout(fallbackTimeout);
+          setAgentSpeaking(false);
+          onDone?.();
+        }
+      }
+    }, 60);
   }, [language]);
 
   // STT
